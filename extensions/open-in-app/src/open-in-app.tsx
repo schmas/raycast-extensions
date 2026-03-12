@@ -16,9 +16,9 @@ import { useFrecency } from "./lib/use-frecency";
 import { useLastApp } from "./lib/use-last-app";
 import { openInApp } from "./lib/open-in-app";
 import { parseAlias } from "./lib/parse-alias";
-import { AppConfig, useApps } from "./lib/use-apps";
+import { AppConfig, AppConfigHook, useApps } from "./lib/use-apps";
 import { useFolders } from "./lib/use-folders";
-import { usePaths } from "./lib/use-paths";
+import { PathsHook, usePaths } from "./lib/use-paths";
 
 /** Resolves the .app path for an AppConfig — prefers stored appPath, falls back to runtime lookup */
 function useAppIconResolver() {
@@ -40,12 +40,12 @@ function useAppIconResolver() {
 }
 
 /** Action that pushes the Manage Apps & Paths screen */
-function ManageAction() {
+function ManageAction({ appsHook, pathsHook }: { appsHook: AppConfigHook; pathsHook: PathsHook }) {
   return (
     <Action.Push
       title="Manage Apps & Paths"
       icon={Icon.Gear}
-      target={<ManageApps />}
+      target={<ManageApps sharedApps={appsHook} sharedPaths={pathsHook} />}
       shortcut={{ modifiers: ["cmd", "shift"], key: "m" }}
     />
   );
@@ -62,7 +62,8 @@ const SHOW_FILES_KEY = "open-in-app:show-files";
 export default function OpenInApp() {
   const [query, setQuery] = useState("");
   const [showFiles, setShowFiles] = useState(false);
-  const { paths, isLoading: pathsLoading } = usePaths();
+  const pathsHook = usePaths();
+  const { paths, isLoading: pathsLoading } = pathsHook;
   const { folders, isLoading: foldersLoading } = useFolders(paths, showFiles);
 
   useEffect(() => {
@@ -76,7 +77,8 @@ export default function OpenInApp() {
     setShowFiles(next);
     LocalStorage.setItem(SHOW_FILES_KEY, String(next));
   }
-  const { apps, isLoading: appsLoading } = useApps();
+  const appsHook = useApps();
+  const { apps, isLoading: appsLoading } = appsHook;
   const { defaultTerminal } = getPreferenceValues<Preferences.OpenInApp>();
   const appIcon = useAppIconResolver();
   const { sortByFrequency, trackOpen } = useFrecency();
@@ -114,7 +116,7 @@ export default function OpenInApp() {
             icon={Icon.AppWindow}
             actions={
               <ActionPanel>
-                <ManageAction />
+                <ManageAction appsHook={appsHook} pathsHook={pathsHook} />
               </ActionPanel>
             }
           />
@@ -131,7 +133,7 @@ export default function OpenInApp() {
           description="Press ⌘⇧M to open Manage Apps & Paths"
           actions={
             <ActionPanel>
-              <ManageAction />
+              <ManageAction appsHook={appsHook} pathsHook={pathsHook} />
             </ActionPanel>
           }
         />
@@ -232,7 +234,7 @@ export default function OpenInApp() {
                     shortcut={{ modifiers: ["cmd"], key: "." }}
                     onAction={toggleShowFiles}
                   />
-                  <ManageAction />
+                  <ManageAction appsHook={appsHook} pathsHook={pathsHook} />
                 </ActionPanel.Section>
               </ActionPanel>
             }

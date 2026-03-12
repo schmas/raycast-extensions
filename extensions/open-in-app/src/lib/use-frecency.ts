@@ -2,6 +2,7 @@ import { LocalStorage } from "@raycast/api";
 import { useEffect, useRef, useState } from "react";
 
 const STORAGE_KEY = "open-in-app:frecency";
+const MAX_ENTRIES = 500;
 
 /** Frequency map: path → open count */
 type FreqMap = Record<string, number>;
@@ -21,9 +22,17 @@ export function useFrecency(): FrecencyHook {
   useEffect(() => {
     LocalStorage.getItem<string>(STORAGE_KEY).then((raw) => {
       try {
-        const map = raw ? JSON.parse(raw) : {};
-        freqRef.current = map;
-        setFreqMap(map);
+        const map: FreqMap = raw ? JSON.parse(raw) : {};
+        const entries = Object.entries(map);
+        if (entries.length > MAX_ENTRIES) {
+          const pruned = Object.fromEntries(entries.sort(([, a], [, b]) => b - a).slice(0, MAX_ENTRIES));
+          freqRef.current = pruned;
+          setFreqMap(pruned);
+          LocalStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
+        } else {
+          freqRef.current = map;
+          setFreqMap(map);
+        }
       } catch {
         // ignore corrupted data
       }

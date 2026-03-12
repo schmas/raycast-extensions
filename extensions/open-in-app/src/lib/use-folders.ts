@@ -51,6 +51,7 @@ export function useFolders(searchPaths: Pick<PathItem, "path" | "maxDepth">[], i
       return;
     }
 
+    let cancelled = false;
     setIsLoading(true);
 
     async function scan() {
@@ -111,6 +112,8 @@ export function useFolders(searchPaths: Pick<PathItem, "path" | "maxDepth">[], i
         }
       }
 
+      if (cancelled) return;
+
       const seen = new Set<string>();
       const unique = allFolders.filter((f) => {
         if (seen.has(f.path)) return false;
@@ -122,6 +125,9 @@ export function useFolders(searchPaths: Pick<PathItem, "path" | "maxDepth">[], i
     }
 
     scan();
+    return () => {
+      cancelled = true;
+    };
   }, [pathsKey]);
 
   return { folders, isLoading };

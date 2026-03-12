@@ -6,19 +6,37 @@ import {
   Form,
   Icon,
   List,
+  Toast,
   confirmAlert,
   getApplications,
   getPreferenceValues,
   openExtensionPreferences,
+  showToast,
   useNavigation,
 } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { AppConfig, useApps } from "./lib/use-apps";
-import { PathItem, displayPath, usePaths } from "./lib/use-paths";
+import { AppConfig, AppConfigHook, useApps } from "./lib/use-apps";
+import { PathItem, PathsHook, displayPath, usePaths } from "./lib/use-paths";
 
-export default function ManageApps() {
-  const { apps, isLoading: appsLoading, addApp, updateApp, deleteApp, moveApp } = useApps();
-  const { paths, isLoading: pathsLoading, addPath, updatePath, deletePath, movePath, replacePaths } = usePaths();
+export default function ManageApps({
+  sharedApps,
+  sharedPaths,
+}: {
+  sharedApps?: AppConfigHook;
+  sharedPaths?: PathsHook;
+} = {}) {
+  const ownApps = useApps();
+  const ownPaths = usePaths();
+  const { apps, isLoading: appsLoading, addApp, updateApp, deleteApp, moveApp } = sharedApps ?? ownApps;
+  const {
+    paths,
+    isLoading: pathsLoading,
+    addPath,
+    updatePath,
+    deletePath,
+    movePath,
+    replacePaths,
+  } = sharedPaths ?? ownPaths;
   const { defaultTerminal } = getPreferenceValues<Preferences.ManageApps>();
 
   async function handleDeleteApp(app: AppConfig) {
@@ -65,7 +83,10 @@ export default function ManageApps() {
             accessories={[{ text: app.bundleId }]}
             actions={
               <ActionPanel>
-                <Action.Push title="Edit" target={<AppForm app={app} onSave={(v) => updateApp({ ...app, ...v })} />} />
+                <Action.Push
+                  title="Edit"
+                  target={<AppForm app={app} onSave={(v) => updateApp({ ...app, ...v })} existingApps={apps} />}
+                />
                 <Action
                   title="Move up"
                   icon={Icon.ArrowUp}
@@ -88,7 +109,7 @@ export default function ManageApps() {
           icon={Icon.Plus}
           actions={
             <ActionPanel>
-              <Action.Push title="Add App" target={<AppForm onSave={addApp} />} />
+              <Action.Push title="Add App" target={<AppForm onSave={addApp} existingApps={apps} />} />
             </ActionPanel>
           }
         />
@@ -163,7 +184,15 @@ interface AppFormValues {
   appId: string; // bundleId or app path, from getApplications()
 }
 
-function AppForm({ app, onSave }: { app?: AppConfig; onSave: (data: Omit<AppConfig, "id">) => Promise<void> }) {
+function AppForm({
+  app,
+  onSave,
+  existingApps,
+}: {
+  app?: AppConfig;
+  onSave: (data: Omit<AppConfig, "id">) => Promise<void>;
+  existingApps: AppConfig[];
+}) {
   const { pop } = useNavigation();
   const [installedApps, setInstalledApps] = useState<Application[]>([]);
   const [isLoadingApps, setIsLoadingApps] = useState(true);
@@ -175,10 +204,27 @@ function AppForm({ app, onSave }: { app?: AppConfig; onSave: (data: Omit<AppConf
   }, []);
 
   async function handleSubmit(values: AppFormValues) {
-    if (!values.alias.trim() || values.alias.includes(" ") || !values.appId) return;
+    const alias = values.alias.trim();
+    if (!alias) {
+      await showToast({ style: Toast.Style.Failure, title: "Alias is required" });
+      return;
+    }
+    if (alias.includes(" ")) {
+      await showToast({ style: Toast.Style.Failure, title: "Alias cannot contain spaces" });
+      return;
+    }
+    if (!values.appId) {
+      await showToast({ style: Toast.Style.Failure, title: "Please select an application" });
+      return;
+    }
+    const duplicate = existingApps.find((a) => a.alias === alias && a.id !== app?.id);
+    if (duplicate) {
+      await showToast({ style: Toast.Style.Failure, title: `Alias "${alias}" is already used by ${duplicate.name}` });
+      return;
+    }
     const selected = installedApps.find((a) => (a.bundleId || a.path) === values.appId);
     if (!selected) return;
-    await onSave({ alias: values.alias.trim(), name: selected.name, bundleId: values.appId, appPath: selected.path });
+    await onSave({ alias, name: selected.name, bundleId: values.appId, appPath: selected.path });
     pop();
   }
 

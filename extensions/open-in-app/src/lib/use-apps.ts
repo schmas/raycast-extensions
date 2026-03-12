@@ -1,6 +1,6 @@
 import { LocalStorage } from "@raycast/api";
 import { randomUUID } from "crypto";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export interface AppConfig {
   id: string;
@@ -24,14 +24,18 @@ const STORAGE_KEY = "open-in-app:apps";
 export function useApps(): AppConfigHook {
   const [apps, setApps] = useState<AppConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const appsRef = useRef<AppConfig[]>([]);
 
   async function load() {
     const raw = await LocalStorage.getItem<string>(STORAGE_KEY);
     try {
-      setApps(raw ? JSON.parse(raw) : []);
+      const parsed: AppConfig[] = raw ? JSON.parse(raw) : [];
+      appsRef.current = parsed;
+      setApps(parsed);
     } catch {
       // corrupted storage — reset
       await LocalStorage.removeItem(STORAGE_KEY);
+      appsRef.current = [];
       setApps([]);
     }
     setIsLoading(false);
@@ -46,30 +50,35 @@ export function useApps(): AppConfigHook {
   }, []);
 
   async function addApp(data: Omit<AppConfig, "id">) {
-    const updated = [...apps, { ...data, id: randomUUID() }];
+    const updated = [...appsRef.current, { ...data, id: randomUUID() }];
+    appsRef.current = updated;
     setApps(updated);
     await persist(updated);
   }
 
   async function updateApp(app: AppConfig) {
-    const updated = apps.map((a) => (a.id === app.id ? app : a));
+    const updated = appsRef.current.map((a) => (a.id === app.id ? app : a));
+    appsRef.current = updated;
     setApps(updated);
     await persist(updated);
   }
 
   async function deleteApp(id: string) {
-    const updated = apps.filter((a) => a.id !== id);
+    const updated = appsRef.current.filter((a) => a.id !== id);
+    appsRef.current = updated;
     setApps(updated);
     await persist(updated);
   }
 
   async function moveApp(id: string, direction: "up" | "down") {
-    const idx = apps.findIndex((a) => a.id === id);
+    const current = appsRef.current;
+    const idx = current.findIndex((a) => a.id === id);
     if (idx === -1) return;
     const newIdx = direction === "up" ? idx - 1 : idx + 1;
-    if (newIdx < 0 || newIdx >= apps.length) return;
-    const updated = [...apps];
+    if (newIdx < 0 || newIdx >= current.length) return;
+    const updated = [...current];
     [updated[idx], updated[newIdx]] = [updated[newIdx], updated[idx]];
+    appsRef.current = updated;
     setApps(updated);
     await persist(updated);
   }
