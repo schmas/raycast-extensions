@@ -46,40 +46,32 @@ export function useApps(): AppConfigHook {
   }, []);
 
   async function addApp(data: Omit<AppConfig, "id">) {
-    setApps((prev) => {
-      const updated = [...prev, { ...data, id: randomUUID() }];
-      persist(updated);
-      return updated;
-    });
+    const updated = [...apps, { ...data, id: randomUUID() }];
+    setApps(updated);
+    await persist(updated);
   }
 
   async function updateApp(app: AppConfig) {
-    setApps((prev) => {
-      const updated = prev.map((a) => (a.id === app.id ? app : a));
-      persist(updated);
-      return updated;
-    });
+    const updated = apps.map((a) => (a.id === app.id ? app : a));
+    setApps(updated);
+    await persist(updated);
   }
 
   async function deleteApp(id: string) {
-    setApps((prev) => {
-      const updated = prev.filter((a) => a.id !== id);
-      persist(updated);
-      return updated;
-    });
+    const updated = apps.filter((a) => a.id !== id);
+    setApps(updated);
+    await persist(updated);
   }
 
   async function moveApp(id: string, direction: "up" | "down") {
-    setApps((prev) => {
-      const idx = prev.findIndex((a) => a.id === id);
-      if (idx === -1) return prev;
-      const newIdx = direction === "up" ? idx - 1 : idx + 1;
-      if (newIdx < 0 || newIdx >= prev.length) return prev;
-      const updated = [...prev];
-      [updated[idx], updated[newIdx]] = [updated[newIdx], updated[idx]];
-      persist(updated);
-      return updated;
-    });
+    const idx = apps.findIndex((a) => a.id === id);
+    if (idx === -1) return;
+    const newIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= apps.length) return;
+    const updated = [...apps];
+    [updated[idx], updated[newIdx]] = [updated[newIdx], updated[idx]];
+    setApps(updated);
+    await persist(updated);
   }
 
   return { apps, isLoading, addApp, updateApp, deleteApp, moveApp };
