@@ -279,7 +279,7 @@ function PathsBulkForm({
     if (commaIdx !== -1) {
       const depthStr = line.slice(commaIdx + 1).trim();
       const depth = parseInt(depthStr, 10);
-      if (!isNaN(depth) && depth > 0) {
+      if (!isNaN(depth) && depth > 0 && String(depth) === depthStr.trim()) {
         return { path: line.slice(0, commaIdx).trim(), maxDepth: depth };
       }
     }
