@@ -11,7 +11,7 @@ interface FrecencyHook {
   /** Sort an array of items by open frequency (most used first) */
   sortByFrequency: <T extends { path: string }>(items: T[]) => T[];
   /** Record an open event for the given path */
-  trackOpen: (path: string) => void;
+  trackOpen: (path: string) => Promise<void>;
 }
 
 export function useFrecency(): FrecencyHook {
@@ -39,11 +39,11 @@ export function useFrecency(): FrecencyHook {
     });
   }, []);
 
-  function trackOpen(path: string) {
+  async function trackOpen(path: string) {
     const updated = { ...freqRef.current, [path]: (freqRef.current[path] ?? 0) + 1 };
     freqRef.current = updated;
     setFreqMap(updated);
-    LocalStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    await LocalStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   }
 
   function sortByFrequency<T extends { path: string }>(items: T[]): T[] {

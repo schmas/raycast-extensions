@@ -9,7 +9,7 @@ type LastAppMap = Record<string, AppHistory>;
 interface LastAppHook {
   getLastApp: (folderPath: string) => string | null;
   getSecondLastApp: (folderPath: string) => string | null;
-  setLastApp: (folderPath: string, appId: string) => void;
+  setLastApp: (folderPath: string, appId: string) => Promise<void>;
 }
 
 function migrateEntry(value: unknown): AppHistory {
@@ -45,7 +45,7 @@ export function useLastApp(): LastAppHook {
     return mapRef.current[folderPath]?.secondLast ?? null;
   }
 
-  function setLastApp(folderPath: string, appId: string): void {
+  async function setLastApp(folderPath: string, appId: string): Promise<void> {
     const current = mapRef.current[folderPath];
     if (current?.last === appId) return;
 
@@ -55,7 +55,7 @@ export function useLastApp(): LastAppHook {
     };
     mapRef.current = updated;
     setMap(updated);
-    LocalStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    await LocalStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   }
 
   return { getLastApp, getSecondLastApp, setLastApp };
