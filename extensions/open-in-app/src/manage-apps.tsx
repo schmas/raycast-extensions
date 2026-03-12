@@ -25,18 +25,21 @@ export default function ManageApps({
   sharedApps?: AppConfigHook;
   sharedPaths?: PathsHook;
 } = {}) {
-  const ownApps = useApps();
-  const ownPaths = usePaths();
-  const { apps, isLoading: appsLoading, addApp, updateApp, deleteApp, moveApp } = sharedApps ?? ownApps;
-  const {
-    paths,
-    isLoading: pathsLoading,
-    addPath,
-    updatePath,
-    deletePath,
-    movePath,
-    replacePaths,
-  } = sharedPaths ?? ownPaths;
+  if (sharedApps && sharedPaths) {
+    return <ManageAppsCore appsHook={sharedApps} pathsHook={sharedPaths} />;
+  }
+  return <StandaloneManageApps />;
+}
+
+function StandaloneManageApps() {
+  const appsHook = useApps();
+  const pathsHook = usePaths();
+  return <ManageAppsCore appsHook={appsHook} pathsHook={pathsHook} />;
+}
+
+function ManageAppsCore({ appsHook, pathsHook }: { appsHook: AppConfigHook; pathsHook: PathsHook }) {
+  const { apps, isLoading: appsLoading, addApp, updateApp, deleteApp, moveApp } = appsHook;
+  const { paths, isLoading: pathsLoading, addPath, updatePath, deletePath, movePath, replacePaths } = pathsHook;
   const { defaultTerminal } = getPreferenceValues<Preferences.ManageApps>();
 
   async function handleDeleteApp(app: AppConfig) {
