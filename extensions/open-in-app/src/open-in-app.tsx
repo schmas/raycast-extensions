@@ -1,7 +1,6 @@
 import {
   Action,
   ActionPanel,
-  Application,
   Icon,
   List,
   LocalStorage,
@@ -20,10 +19,6 @@ import { parseAlias } from "./lib/parse-alias";
 import { AppConfig, useApps } from "./lib/use-apps";
 import { useFolders } from "./lib/use-folders";
 import { usePaths } from "./lib/use-paths";
-
-interface Preferences {
-  defaultTerminal?: Application;
-}
 
 /** Resolves the .app path for an AppConfig — prefers stored appPath, falls back to runtime lookup */
 function useAppIconResolver() {
@@ -82,7 +77,7 @@ export default function OpenInApp() {
     LocalStorage.setItem(SHOW_FILES_KEY, String(next));
   }
   const { apps, isLoading: appsLoading } = useApps();
-  const { defaultTerminal } = getPreferenceValues<Preferences>();
+  const { defaultTerminal } = getPreferenceValues<Preferences.OpenInApp>();
   const appIcon = useAppIconResolver();
   const { sortByFrequency, trackOpen } = useFrecency();
   const { getLastApp, getSecondLastApp, setLastApp } = useLastApp();
@@ -92,9 +87,11 @@ export default function OpenInApp() {
   const { alias, query: searchTerm } = parseAlias(query);
   const activeApp = alias ? (apps.find((a) => a.alias === alias) ?? null) : null;
 
+  const effectiveSearchTerm = activeApp ? searchTerm : query;
+
   // When searching: fuzzy sort. When no query: frecency sort (most used first)
-  const filtered = fuzzySearch(folders, searchTerm, "name");
-  const results = searchTerm ? filtered : sortByFrequency(filtered);
+  const filtered = fuzzySearch(folders, effectiveSearchTerm, "name");
+  const results = effectiveSearchTerm ? filtered : sortByFrequency(filtered);
 
   if (!appsLoading && apps.length === 0) {
     return (

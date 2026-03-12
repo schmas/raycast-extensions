@@ -16,14 +16,10 @@ import { useEffect, useState } from "react";
 import { AppConfig, useApps } from "./lib/use-apps";
 import { PathItem, displayPath, usePaths } from "./lib/use-paths";
 
-interface Preferences {
-  defaultTerminal?: Application;
-}
-
 export default function ManageApps() {
   const { apps, isLoading: appsLoading, addApp, updateApp, deleteApp, moveApp } = useApps();
   const { paths, isLoading: pathsLoading, addPath, updatePath, deletePath, movePath, replacePaths } = usePaths();
-  const { defaultTerminal } = getPreferenceValues<Preferences>();
+  const { defaultTerminal } = getPreferenceValues<Preferences.ManageApps>();
 
   async function handleDeleteApp(app: AppConfig) {
     const confirmed = await confirmAlert({
