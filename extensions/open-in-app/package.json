@@ -24,6 +24,7 @@
     {
       "name": "manage-apps",
       "title": "Manage Apps & Paths",
+      "subtitle": "Open in App",
       "description": "Add, edit, remove app configurations and search paths",
       "mode": "view"
     }
