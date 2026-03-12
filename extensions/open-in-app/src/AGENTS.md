@@ -75,7 +75,7 @@ Both commands import and compose hooks/utilities from `lib/` to handle data and 
 - Add search path via `PathForm` (file picker + glob support)
 - Edit search path via `PathForm`
 - Remove search path with confirmation
-- Reorder paths (move up/down)
+- Reorder paths (Move Up/down)
 
 **Key Dependencies:**
 
