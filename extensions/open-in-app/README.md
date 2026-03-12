@@ -32,10 +32,10 @@ Open the **Open in App** command and start typing. Results are fuzzy-matched aga
 
 Prefix your search with an app alias followed by a space:
 
-| Input | What Happens |
-|---|---|
-| `react` | Search for "react", show all apps in actions |
-| `ij react` | Search for "react", open directly in IntelliJ |
+| Input         | What Happens                                  |
+| ------------- | --------------------------------------------- |
+| `react`       | Search for "react", show all apps in actions  |
+| `ij react`    | Search for "react", open directly in IntelliJ |
 | `code my-api` | Search for "my-api", open directly in VS Code |
 
 The alias-matched app becomes the primary action. Other apps remain available in the action panel.
@@ -46,25 +46,27 @@ When the search bar is empty, folders are sorted by how often you open them. The
 
 ### Keyboard Shortcuts
 
-| Shortcut | Action |
-|---|---|
-| `↵` | Open in primary app (alias-matched or first configured) |
-| `⌘T` | Open in default terminal |
-| `⌘F` | Show in Finder |
-| `⌘C` | Copy path to clipboard |
-| `⌘⇧M` | Manage Apps & Paths |
+| Shortcut | Action                                                  |
+| -------- | ------------------------------------------------------- |
+| `↵`      | Open in primary app (alias-matched or first configured) |
+| `⌘T`     | Open in default terminal                                |
+| `⌘F`     | Show in Finder                                          |
+| `⌘C`     | Copy path to clipboard                                  |
+| `⌘⇧M`    | Manage Apps & Paths                                     |
 
 ## Configuration
 
 ### Apps
 
 Each app has:
+
 - **Alias** — a short prefix (no spaces) used to target the app from the search bar
 - **Application** — any installed macOS application
 
 ### Search Paths
 
 Paths tell the extension where to look for folders. You can use:
+
 - Plain directories: `~/projects` (scans immediate children)
 - Glob patterns: `~/work/*/src` (matches one level deep), `~/repos/**` (matches any depth)
 
@@ -72,6 +74,6 @@ The following directories are always excluded from results: `node_modules`, `.gi
 
 ### Preferences
 
-| Preference | Description |
-|---|---|
+| Preference       | Description                                      |
+| ---------------- | ------------------------------------------------ |
 | Default Terminal | Terminal app used when opening a folder via `⌘T` |
