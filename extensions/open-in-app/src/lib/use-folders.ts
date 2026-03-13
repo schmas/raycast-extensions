@@ -69,6 +69,8 @@ export function useFolders(searchPaths: Pick<PathItem, "path" | "maxDepth">[], i
           const parts = expanded.split("/");
           const firstGlobIdx = parts.findIndex((part) => GLOB_CHARS.test(part));
           cwd = parts.slice(0, firstGlobIdx).join("/") || "/";
+          // Skip patterns whose base resolves to filesystem root to avoid scanning the entire disk
+          if (cwd === "/") continue;
           pattern = parts.slice(firstGlobIdx).join("/");
           maxDepth = item.maxDepth;
         } else {
