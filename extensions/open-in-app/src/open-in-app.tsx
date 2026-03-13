@@ -72,10 +72,10 @@ export default function OpenInApp() {
     });
   }, []);
 
-  function toggleShowFiles() {
+  async function toggleShowFiles() {
     const next = !showFiles;
     setShowFiles(next);
-    LocalStorage.setItem(SHOW_FILES_KEY, String(next));
+    await LocalStorage.setItem(SHOW_FILES_KEY, String(next));
   }
   const appsHook = useApps();
   const { apps, isLoading: appsLoading } = appsHook;
