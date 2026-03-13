@@ -10,6 +10,8 @@ type FreqMap = Record<string, number>;
 interface FrecencyHook {
   /** Sort an array of items by open frequency (most used first) */
   sortByFrequency: <T extends { path: string }>(items: T[]) => T[];
+  /** Return the open count for the given path (0 if never opened) */
+  getFrequency: (path: string) => number;
   /** Record an open event for the given path */
   trackOpen: (path: string) => Promise<void>;
 }
@@ -51,5 +53,9 @@ export function useFrecency(): FrecencyHook {
     return [...items].sort((a, b) => (freqRef.current[b.path] ?? 0) - (freqRef.current[a.path] ?? 0));
   }
 
-  return { sortByFrequency, trackOpen };
+  function getFrequency(path: string): number {
+    return freqRef.current[path] ?? 0;
+  }
+
+  return { sortByFrequency, getFrequency, trackOpen };
 }

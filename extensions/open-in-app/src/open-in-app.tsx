@@ -81,7 +81,7 @@ export default function OpenInApp() {
   const { apps, isLoading: appsLoading } = appsHook;
   const { defaultTerminal } = getPreferenceValues<Preferences.OpenInApp>();
   const appIcon = useAppIconResolver();
-  const { sortByFrequency, trackOpen } = useFrecency();
+  const { sortByFrequency, getFrequency, trackOpen } = useFrecency();
   const { getLastApp, getSecondLastApp, setLastApp } = useLastApp();
 
   const isLoading = pathsLoading || foldersLoading || appsLoading;
@@ -92,7 +92,8 @@ export default function OpenInApp() {
   const effectiveSearchTerm = activeApp ? searchTerm : query;
 
   // When searching: fuzzy sort. When no query: frecency sort (most used first)
-  const filtered = fuzzySearch(folders, effectiveSearchTerm, "name");
+  const frecencyTiebreaker = (item: { path: string }) => getFrequency(item.path);
+  const filtered = fuzzySearch(folders, effectiveSearchTerm, "name", frecencyTiebreaker);
   const results = effectiveSearchTerm ? filtered : sortByFrequency(filtered);
 
   if (!appsLoading && apps.length === 0) {
@@ -162,7 +163,12 @@ export default function OpenInApp() {
             icon={folder.isDirectory ? Icon.Folder : Icon.Document}
             title={folder.name}
             subtitle={folder.displayPath}
-            accessories={activeApp ? [{ text: `[${activeApp.alias}]` }] : []}
+            accessories={[
+              ...(activeApp ? [{ text: `[${activeApp.alias}]` }] : []),
+              ...(getFrequency(folder.path) > 0
+                ? [{ text: `${getFrequency(folder.path)}`, tooltip: "Times opened" }]
+                : []),
+            ]}
             actions={
               <ActionPanel>
                 {primaryApp && (

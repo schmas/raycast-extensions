@@ -3,10 +3,15 @@ import fuzzysort from "fuzzysort";
 /**
  * Filter and rank items by query against a key field.
  * Returns sorted array (best match first).
+ * When a tiebreaker is provided, items with equal fuzzy scores are
+ * sorted by the tiebreaker (higher = first).
  * Returns all items if query is empty.
  */
-export function fuzzySearch<T>(items: T[], query: string, key: keyof T): T[] {
+export function fuzzySearch<T>(items: T[], query: string, key: keyof T, tiebreaker?: (item: T) => number): T[] {
   if (!query) return items;
   const results = fuzzysort.go(query, items, { key: key as string });
-  return results.map((r) => r.obj);
+  if (!tiebreaker) return results.map((r) => r.obj);
+  return [...results]
+    .sort((a, b) => (a.score === b.score ? tiebreaker(b.obj) - tiebreaker(a.obj) : b.score - a.score))
+    .map((r) => r.obj);
 }
