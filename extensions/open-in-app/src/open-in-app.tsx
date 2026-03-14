@@ -8,6 +8,8 @@ import {
   getPreferenceValues,
   open,
   openExtensionPreferences,
+  showToast,
+  Toast,
 } from "@raycast/api";
 import { useEffect, useState } from "react";
 import ManageApps from "./manage-apps";
@@ -176,10 +178,14 @@ export default function OpenInApp() {
                     title={`Open in ${primaryApp.name}`}
                     icon={appIcon(primaryApp)}
                     shortcut={appShortcut(apps.findIndex((a) => a.id === primaryApp.id))}
-                    onAction={() => {
-                      trackOpen(folder.path);
-                      setLastApp(folder.path, primaryApp.id);
-                      openInApp(folder.path, primaryApp);
+                    onAction={async () => {
+                      try {
+                        await trackOpen(folder.path);
+                        await setLastApp(folder.path, primaryApp.id);
+                        await openInApp(folder.path, primaryApp);
+                      } catch (e) {
+                        await showToast({ style: Toast.Style.Failure, title: "Failed to open", message: String(e) });
+                      }
                     }}
                   />
                 )}
@@ -188,10 +194,14 @@ export default function OpenInApp() {
                     title={`Open in ${secondaryApp.name}`}
                     icon={appIcon(secondaryApp)}
                     shortcut={appShortcut(apps.findIndex((a) => a.id === secondaryApp.id))}
-                    onAction={() => {
-                      trackOpen(folder.path);
-                      setLastApp(folder.path, secondaryApp.id);
-                      openInApp(folder.path, secondaryApp);
+                    onAction={async () => {
+                      try {
+                        await trackOpen(folder.path);
+                        await setLastApp(folder.path, secondaryApp.id);
+                        await openInApp(folder.path, secondaryApp);
+                      } catch (e) {
+                        await showToast({ style: Toast.Style.Failure, title: "Failed to open", message: String(e) });
+                      }
                     }}
                   />
                 )}
@@ -203,10 +213,14 @@ export default function OpenInApp() {
                       title={`Open in ${app.name}`}
                       icon={appIcon(app)}
                       shortcut={appShortcut(apps.findIndex((a) => a.id === app.id))}
-                      onAction={() => {
-                        trackOpen(folder.path);
-                        setLastApp(folder.path, app.id);
-                        openInApp(folder.path, app);
+                      onAction={async () => {
+                        try {
+                          await trackOpen(folder.path);
+                          await setLastApp(folder.path, app.id);
+                          await openInApp(folder.path, app);
+                        } catch (e) {
+                          await showToast({ style: Toast.Style.Failure, title: "Failed to open", message: String(e) });
+                        }
                       }}
                     />
                   ))}
@@ -218,9 +232,13 @@ export default function OpenInApp() {
                       title={`Open in ${defaultTerminal.name}`}
                       icon={defaultTerminal.path ? { fileIcon: defaultTerminal.path } : Icon.Terminal}
                       shortcut={{ modifiers: ["cmd"], key: "t" }}
-                      onAction={() => {
-                        trackOpen(folder.path);
-                        open(folder.path, defaultTerminal.bundleId || defaultTerminal.path);
+                      onAction={async () => {
+                        try {
+                          await trackOpen(folder.path);
+                          await open(folder.path, defaultTerminal.bundleId || defaultTerminal.path);
+                        } catch (e) {
+                          await showToast({ style: Toast.Style.Failure, title: "Failed to open", message: String(e) });
+                        }
                       }}
                     />
                   )}

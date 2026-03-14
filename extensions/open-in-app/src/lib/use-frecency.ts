@@ -22,7 +22,8 @@ export function useFrecency(): FrecencyHook {
   const freqRef = useRef<FreqMap>({});
 
   useEffect(() => {
-    LocalStorage.getItem<string>(STORAGE_KEY).then((raw) => {
+    (async () => {
+      const raw = await LocalStorage.getItem<string>(STORAGE_KEY);
       try {
         const map: FreqMap = raw ? JSON.parse(raw) : {};
         const entries = Object.entries(map);
@@ -30,7 +31,7 @@ export function useFrecency(): FrecencyHook {
           const pruned = Object.fromEntries(entries.sort(([, a], [, b]) => b - a).slice(0, MAX_ENTRIES));
           freqRef.current = pruned;
           setFreqMap(pruned);
-          LocalStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
+          await LocalStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
         } else {
           freqRef.current = map;
           setFreqMap(map);
@@ -38,7 +39,7 @@ export function useFrecency(): FrecencyHook {
       } catch {
         // ignore corrupted data
       }
-    });
+    })();
   }, []);
 
   async function trackOpen(path: string) {
