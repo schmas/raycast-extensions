@@ -11,7 +11,13 @@ export function fuzzySearch<T>(items: T[], query: string, key: keyof T, tiebreak
   if (!query) return items;
   const results = fuzzysort.go(query, items, { key: key as string });
   if (!tiebreaker) return results.map((r) => r.obj);
+  // Boost fuzzy score by frecency so frequently-opened items rank higher
+  const FRECENCY_BOOST = 3;
   return [...results]
-    .sort((a, b) => (a.score === b.score ? tiebreaker(b.obj) - tiebreaker(a.obj) : b.score - a.score))
+    .sort((a, b) => {
+      const sa = a.score + tiebreaker(a.obj) * FRECENCY_BOOST;
+      const sb = b.score + tiebreaker(b.obj) * FRECENCY_BOOST;
+      return sb - sa;
+    })
     .map((r) => r.obj);
 }
